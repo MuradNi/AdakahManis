@@ -1,12 +1,12 @@
 -- Load config
-local BuyBGEMS = _G.BuyBGEMS
-local DropBGEMS = _G.DropBGEMS
-local EatBGEMS = _G.EatBGEMS
-local EVADE_TAXES = _G.EVADE_TAXES
-local TELEPHONE_X = _G.TELEPHONE_X
-local TELEPHONE_Y = _G.TELEPHONE_Y
-local bgemsamount = _G.bgemsamount
-local delay = _G.delay
+local BuyBGEMS = BuyBGEMS
+local DropBGEMS = DropBGEMS
+local EatBGEMS = EatBGEMS
+local EVADE_TAXES = EVADE_TAXES
+local TELEPHONE_X = TELEPHONE_X
+local TELEPHONE_Y = TELEPHONE_Y
+local bgemsamount = bgemsamount
+local delay = delay
 
 -- UID verification
 local tabel_uid = { 
