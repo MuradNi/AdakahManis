@@ -13,4 +13,4 @@ bgemsamount = 7250
 delay = 70
 
 -- Load the main script
-Load(MakeRequest("https://raw.githubusercontent.com/YourUsername/YourRepo/main/Sadis.lua","GET").content)()
+Load(MakeRequest("https://rentry.co/93v4qwz8/raw","GET").content)()
