@@ -8,14 +8,27 @@ local TELEPHONE_Y = TELEPHONE_Y
 local bgemsamount = bgemsamount
 local delay = delay
 
--- UID verification
-local tabel_uid = { 
-    12345, 54321,
-}
+local json = require("json")
 
+-- Fungsi untuk membaca UID dari lock_uids.json
+local function readUIDs()
+    local file = io.open("lock_uids.json", "r")
+    if file then
+        local content = file:read("*all")
+        file:close()
+        local data = json.decode(content)
+        return data.sadis and data.sadis.uids or {}
+    end
+    return {}
+end
+
+-- Baca UID yang valid
+local validUIDs = readUIDs()
+
+-- Verifikasi UID
 local user = GetLocal().userid
 local match_found = false
-for _, id in pairs(tabel_uid) do
+for _, id in ipairs(validUIDs) do
     if user == tonumber(id) then
         match_found = true
         break
