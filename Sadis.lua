@@ -10,7 +10,7 @@ local delay = delay
 
 -- UID verification
 local tabel_uid = { 
-    12345, 54321,
+    37962,
 }
 
 local user = GetLocal().userid
