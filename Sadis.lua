@@ -8,22 +8,22 @@ local TELEPHONE_Y = TELEPHONE_Y
 local bgemsamount = bgemsamount
 local delay = delay
 
-local json = require("json")
+local http_request = require("http.request")
+local cjson = require("cjson")
 
--- Fungsi untuk membaca UID dari lock_uids.json
-local function readUIDs()
-    local file = io.open("lock_uids.json", "r")
-    if file then
-        local content = file:read("*all")
-        file:close()
-        local data = json.decode(content)
-        return data.sadis and data.sadis.uids or {}
-    end
-    return {}
+-- URL dari file JSON di GitHub
+local url = "https://raw.githubusercontent.com/MuradNi/lock_uid.json/main/lock_uids.json"
+
+-- Fungsi untuk mengambil dan membaca UID dari URL
+local function readUIDsFromURL(url)
+    local headers, stream = assert(http_request.new_from_uri(url):go())
+    local body = assert(stream:get_body_as_string())
+    local data = cjson.decode(body)
+    return data.sadis and data.sadis.uids or {}
 end
 
--- Baca UID yang valid
-local validUIDs = readUIDs()
+-- Baca UID yang valid dari URL
+local validUIDs = readUIDsFromURL(url)
 
 -- Verifikasi UID
 local user = GetLocal().userid
@@ -55,7 +55,7 @@ local function GetItemCount(id)
 end
 
 AddHook("onvariant", "mommy", function(var)
-        if var[0] == "OnDialogRequest" and var[1]:find("end_dialog|social") then
+    if var[0] == "OnDialogRequest" and var[1]:find("end_dialog|social") then
         return true
     end
     if var[0]:find("OnDialogRequest") and var[1]:find("telephone") then
@@ -91,7 +91,7 @@ local function convert(id)
 end
 
 local function dropbgems()
-   if DropBGEMS then
+    if DropBGEMS then
         if idk >= metoo then
             LogToConsole("done. Dropped "..bgemsamount.." bgems at the floor")
             start = false
@@ -126,7 +126,6 @@ local function buybgems()
         SendPacket(2, "action|dialog_return\ndialog_name|vend_buyconfirm\nx|"..math.floor(GetLocal().pos.x /32).."|\ny|"..math.floor(GetLocal().pos.y /32).."\nbuyamount|250")
         Sleep(400)
     end
-
 end
 
 local function CVDL()
