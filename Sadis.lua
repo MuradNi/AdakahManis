@@ -1,34 +1,21 @@
 -- Load config
-local BuyBGEMS = BuyBGEMS
-local DropBGEMS = DropBGEMS
-local EatBGEMS = EatBGEMS
-local EVADE_TAXES = EVADE_TAXES
-local TELEPHONE_X = TELEPHONE_X
-local TELEPHONE_Y = TELEPHONE_Y
-local bgemsamount = bgemsamount
-local delay = delay
+local BuyBGEMS = _G.BuyBGEMS
+local DropBGEMS = _G.DropBGEMS
+local EatBGEMS = _G.EatBGEMS
+local EVADE_TAXES = _G.EVADE_TAXES
+local TELEPHONE_X = _G.TELEPHONE_X
+local TELEPHONE_Y = _G.TELEPHONE_Y
+local bgemsamount = _G.bgemsamount
+local delay = _G.delay
 
-local http_request = require("http.request")
-local cjson = require("cjson")
+-- UID verification
+local tabel_uid = { 
+    12345, 54321,
+}
 
--- URL dari file JSON di GitHub
-local url = "https://raw.githubusercontent.com/MuradNi/lock_uid.json/main/lock_uids.json"
-
--- Fungsi untuk mengambil dan membaca UID dari URL
-local function readUIDsFromURL(url)
-    local headers, stream = assert(http_request.new_from_uri(url):go())
-    local body = assert(stream:get_body_as_string())
-    local data = cjson.decode(body)
-    return data.sadis and data.sadis.uids or {}
-end
-
--- Baca UID yang valid dari URL
-local validUIDs = readUIDsFromURL(url)
-
--- Verifikasi UID
 local user = GetLocal().userid
 local match_found = false
-for _, id in ipairs(validUIDs) do
+for _, id in pairs(tabel_uid) do
     if user == tonumber(id) then
         match_found = true
         break
@@ -55,7 +42,7 @@ local function GetItemCount(id)
 end
 
 AddHook("onvariant", "mommy", function(var)
-    if var[0] == "OnDialogRequest" and var[1]:find("end_dialog|social") then
+        if var[0] == "OnDialogRequest" and var[1]:find("end_dialog|social") then
         return true
     end
     if var[0]:find("OnDialogRequest") and var[1]:find("telephone") then
@@ -91,7 +78,7 @@ local function convert(id)
 end
 
 local function dropbgems()
-    if DropBGEMS then
+   if DropBGEMS then
         if idk >= metoo then
             LogToConsole("done. Dropped "..bgemsamount.." bgems at the floor")
             start = false
@@ -126,6 +113,7 @@ local function buybgems()
         SendPacket(2, "action|dialog_return\ndialog_name|vend_buyconfirm\nx|"..math.floor(GetLocal().pos.x /32).."|\ny|"..math.floor(GetLocal().pos.y /32).."\nbuyamount|250")
         Sleep(400)
     end
+
 end
 
 local function CVDL()
