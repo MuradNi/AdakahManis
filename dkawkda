@@ -1,0 +1,265 @@
+-- Check if the configuration file exists
+function file_exists(filename)
+    local f = io.open(filename, "r")
+    if f ~= nil then
+        io.close(f)
+        return true
+    else
+        return false
+    end
+end
+
+-- Send a notification
+function notif(text)
+    local var = {}
+    var[0] = "OnTextOverlay"
+    var[1] = text
+    var.netid = -1
+    SendVarlist(var)
+end
+
+-- Create configuration file if it doesn't exist
+if not file_exists("C:/config.lua") then
+    notif("`9Config File Not Found\n   `2Creating One...   ")
+    local config = io.open("C:/config.lua", "w")
+    config:write([[
+config = {
+    TaxAmount = 5,
+    TeleX = 0,
+    TeleY = 0,
+    CekGems = true,
+    pull = 0,
+    kick = 0,
+    ban = 0,
+    trade = 0,
+    telephone = 0,
+    drop = 0,
+    trash = 0,
+    fast = "false",
+    autoTelephone = true,
+    blockSDB = true,
+    p1 = {x = 0, y = 0},
+    p2 = {x = 0, y = 0}
+}
+return config]])
+    config:close()
+end
+
+-- Load configuration
+dofile("C:/config.lua")
+
+-- Assign configuration values to variables
+local TaxAmount = config.TaxAmount
+local TeleX = config.TeleX
+local TeleY = config.TeleY
+local CekGems = config.CekGems
+local pull = config.pull
+local kick = config.kick
+local ban = config.ban
+local trade = config.trade
+local telephone = config.telephone
+local drops = config.drop
+local trash = config.trash
+local fast = config.fast
+local autoTelephone = config.autoTelephone
+local blockSDB = config.blockSDB
+local p1x, p1y, p2x, p2y = config.p1.x, config.p1.y, config.p2.x, config.p2.y
+
+-- Additional variables
+local breaks = false
+local spam = false
+local autoBuy = 0
+local customPos = 0
+local autoBuyPos = {x = 0, y = 0}
+
+-- Save configuration
+function save()
+    local config = io.open("C:/config.lua", "w")
+    if config then
+        config:write("config = {\n")
+        config:write("TaxAmount = " .. TaxAmount .. ",\n")
+        config:write("TeleX = " .. TeleX .. ",\n")
+        config:write("TeleY = " .. TeleY .. ",\n")
+        config:write("CekGems = " .. tostring(CekGems) .. ",\n")
+        config:write("pull = " .. pull .. ",\n")
+        config:write("kick = " .. kick .. ",\n")
+        config:write("ban = " .. ban .. ",\n")
+        config:write("trade = " .. trade .. ",\n")
+        config:write("telephone = " .. telephone .. ",\n")
+        config:write("drop = " .. drops .. ",\n")
+        config:write("trash = " .. trash .. ",\n")
+        config:write('fast = "' .. fast .. '",\n')
+        config:write("autoTelephone = " .. tostring(autoTelephone) .. ",\n")
+        config:write("blockSDB = " .. tostring(blockSDB) .. ",\n")
+        config:write("p1 = {x = " .. p1x .. ", y = " .. p1y .. "},\n")
+        config:write("p2 = {x = " .. p2x .. ", y = " .. p2y .. "},\n")
+        config:write("}\nreturn config")
+        config:close()
+        notif("`9Save `2Success")
+    end
+end
+
+-- Drop item function
+function drop(id, amount)
+    SendPacket(2, "action|dialog_return\ndialog_name|drop\nitem_drop|" .. id .. "|\nitem_count|" .. amount)
+end
+
+-- Convert function
+function convert(x, y)
+    if GetTile(x, y).fg == 3898 and ceklock(1796) >= 100 then
+        SendPacket(2, "action|dialog_return\ndialog_name|telephone\nnum|53785\nx|" .. x .. "|\ny|" .. y .. "|\nbuttonClicked|bglconvert")
+        notif("`9Convert `2Success")
+    else
+        notif("`9Convert `4Fail")
+    end
+end
+
+-- Collect function
+function collect(oid, x, y)
+    local pkt = {type = 11, int_data = oid, pos_x = x, pos_y = y}
+    SendPacketRaw(pkt)
+end
+
+-- Take function
+function take(x, y)
+    for _, obj in pairs(GetObjects()) do
+        if math.floor(obj.pos_x / 32) == x and math.floor(obj.pos_y / 32) == y then
+            collect(obj.oid, obj.pos_x, obj.pos_y)
+        end
+    end
+end
+
+-- Check object lock function
+function cekobjlock(x, y)
+    for _, obj in pairs(GetObjects()) do
+        if obj.id == 242 or obj.id == 1796 or obj.id == 7188 then
+            if math.floor(obj.pos_x / 32) == x and math.floor(obj.pos_y / 32) == y then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- Withdraw function
+function wd(amount)
+    SendPacket(2, "action|dialog_return\ndialog_name|bank_withdraw\nbgl_count|" .. amount)
+end
+
+-- Deposit function
+function depo(amount)
+    SendPacket(2, "action|dialog_return\ndialog_name|bank_deposit\nbgl_count|" .. amount)
+end
+
+-- Shatter function
+function shatter(id)
+    local pkt = {type = 10, int_data = id}
+    SendPacketRaw(pkt)
+end
+
+-- Check lock function
+function ceklock(id)
+    for _, inv in pairs(GetInventory()) do
+        if inv.id == id then
+            return inv.count
+        end
+    end
+    return 0
+end
+
+-- Log to console function
+function LogToConsole(text)
+    local var = {[0] = "OnConsoleMessage", [1] = "`1[`4Murad `2Proxy`1] " .. text, netid = -1}
+    SendVarlist(var)
+end
+
+-- Currency conversion function
+function cd(amount)
+    RunThread(function()
+        local bgl = 0
+        local dl = 0
+        local wl = 0
+        if amount >= 10000 then
+            bgl = amount // 10000
+            dl = (amount - bgl * 10000) // 100
+            wl = amount % 100
+        else
+            dl = amount // 100
+            wl = amount % 100
+        end
+        isCdRunning = true
+        if ceklock(1796) < dl then
+            repeat
+                shatter(7188)
+                Sleep(50)
+            until ceklock(1796) >= dl
+            Sleep(100)
+            drop(7188, bgl)
+            Sleep(100)
+            drop(1796, dl)
+            Sleep(100)
+            drop(242, wl)
+        elseif ceklock(242) < wl then
+            repeat
+                shatter(1796)
+                Sleep(50)
+            until ceklock(242) >= wl
+            Sleep(100)
+            drop(7188, bgl)
+            Sleep(100)
+            drop(1796, dl)
+            Sleep(100)
+            drop(242, wl)
+        else
+            Sleep(100)
+            drop(7188, bgl)
+            Sleep(100)
+            drop(1796, dl)
+            Sleep(100)
+            drop(242, wl)
+        end
+        isCdRunning = false
+    end)
+end
+
+-- Callback functions
+AddCallback("block", "OnVarlist", function(var, packet)
+    if var[0] == "OnDialogRequest" and var[1]:find("end_dialog|bank_withdraw") then
+        var[1]:gsub("`$", "")
+        local x = var[1]:match("you have (.*) in the bank")
+        Sleep(500)
+        SendPacket(2, "action|dialog_return\ndialog_name|bank_withdraw\nbgl_count|" .. x)
+        return true
+    elseif var[0] == "OnDialogRequest" and var[1]:find("end_dialog|telephone|Hang Up||") then
+        return true
+    elseif var[0] == "OnDialogRequest" and var[1]:find("add_button|pull") then
+        return true
+    elseif var[0] == "OnDialogRequest" and var[1]:find("Dial a number to call somebody in Growtopia") and fast == "telephone" then
+        RunThread(function()
+            TeleX = tonumber(var[1]:match("embed_data|x|(.*)embed_data"))
+            TeleY = tonumber(var[1]:match("embed_data|y|(.*)embed_data"))
+            notif("Telephone detected at [" .. TeleX .. ", " .. TeleY .. "]")
+            while autoTelephone do
+                Sleep(10)
+                convert(TeleX, TeleY)
+            end
+        end)
+        return true
+    end
+end)
+
+-- In-game join event
+AddCallback("block", "OnSendToServer", function(type, packet)
+    if fast == "join" then
+        local pkt = {type = 7, pname = GetLocal().name}
+        SendPacketRaw(pkt)
+    end
+end)
+
+-- Chat event
+AddCallback("block", "OnSendPacket", function(type, packet)
+    if fast == "chat" then
+        SendPacket(2, "action|input\ntext|/kick")
+        fast = "false"
+    end
+end)
