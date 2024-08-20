@@ -8,23 +8,26 @@ local TELEPHONE_Y = TELEPHONE_Y
 local bgemsamount = bgemsamount
 local delay = delay
 
--- UID verification
-local tabel_uid = { 
-    37962,
-}
-
-local user = GetLocal().userid
-local match_found = false
-for _, id in pairs(tabel_uid) do
-    if user == tonumber(id) then
-        match_found = true
-        break
+local function fetchUIDs()
+    local success, response = pcall(function()
+        return HttpGet("https://raw.githubusercontent.com/MuradNi/lock_uid.json/main/lock_uids.json")
+    end)
+    
+    if success then
+        local success, data = pcall(function()
+            return JsonDecode(response)
+        end)
+        
+        if success and type(data) == "table" and data.uids then
+            return data.uids
+        else
+            LogToConsole("Error decoding UID data")
+            return {}
+        end
+    else
+        LogToConsole("Error fetching UID data")
+        return {}
     end
-end
-
-if not match_found then
-    LogToConsole("UID not registered. Access denied.")
-    return
 end
 
 -- Jika UID terverifikasi, lanjutkan dengan script utama
